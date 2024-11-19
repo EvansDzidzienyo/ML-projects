@@ -2,7 +2,7 @@
 # **Mental Health Condition Prediction Using Machine Learning**  
 
 ### **Overview**  
-This repository presents a machine learning project aimed at predicting employee mental health conditions based on key workplace and personal factors. Here, is contained the model, the python file and the encoded file. The project emphasizes the importance of mental health awareness in professional environments and leverages machine learning to provide actionable insights for improving workplace wellness initiatives.
+This repository presents a machine learning project aimed at predicting employee mental health conditions based on key workplace and personal factors. Here, is contained the CSV file, the codes, model, the python file and the encoded file. The project emphasizes the importance of mental health awareness in professional environments and leverages machine learning to provide actionable insights for improving workplace wellness initiatives.
 
 ---
 
