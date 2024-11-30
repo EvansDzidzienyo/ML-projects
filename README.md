@@ -1,3 +1,4 @@
+![Project Visuals](FRM.jpg)
 
 # **Mental Health Condition Prediction Using Machine Learning**  
 
