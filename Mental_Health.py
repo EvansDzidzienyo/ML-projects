@@ -21,7 +21,8 @@ def label_encode(value, mapping):
     return mapping.get(value, -1)
 
 # Title
-st.title("Employee Mental Health Prediction")
+st.title("Employee Mental Health Model — Experimental Demonstration")
+st.warning("Educational demonstration only. This model is not a clinical assessment or diagnosis and must not be used for hiring, employee evaluation or treatment decisions.")
 
 # User inputs
 #age = st.number_input("Age", min_value=18, max_value=65, value=30)
