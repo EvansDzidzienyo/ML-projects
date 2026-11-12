@@ -4,8 +4,12 @@ import pandas as pd
 import numpy as np
 import joblib
 
-model = joblib.load("model.pkl")
-onehot_encoder = joblib.load("onehot_encoder.pkl")
+try:
+    model = joblib.load("model.pkl")
+    onehot_encoder = joblib.load("onehot_encoder.pkl")
+except Exception:
+    st.error("The saved model or encoder could not be loaded. Check the compatible Python and scikit-learn versions.")
+    st.stop()
 
 # Define label mappings for consistency
 label_mappings = {
@@ -43,11 +47,19 @@ physical_activity = label_encode(st.selectbox("Physical Activity", ["Not At All"
 input_data = pd.DataFrame([[age, hours_worked_per_week, gender, industry, location, region, sleep_quality, stress_level, access_to_mental_health_resource, physical_activity]],
                           columns=["age", "hours_worked_per_week", "gender", "industry", "Location", "region", "sleep_Quality", "stress_Level", "access_to_Mental_Health_Resource", "physical_Activity"])
 
-encoded_input = onehot_encoder.transform(input_data[["gender", "industry", "Location", "region"]])
+try:
+    encoded_input = onehot_encoder.transform(input_data[["gender", "industry", "Location", "region"]])
+except Exception:
+    st.error("The selected categories are not supported by the saved encoder. The model and encoder need to be retrained and packaged together.")
+    st.stop()
 encoded_input_df = pd.DataFrame(encoded_input, columns=onehot_encoder.get_feature_names_out(["gender", "industry", "Location", "region"]))
 
 input_data = input_data.drop(["gender", "industry", "Location", "region"], axis=1)
 input_data = pd.concat([input_data, encoded_input_df], axis=1)
+
+if not hasattr(model, "feature_names_in_"):
+    st.error("The saved model does not expose its expected feature names. Retrain/package the model and preprocessing together.")
+    st.stop()
 
 missing_cols = set(model.feature_names_in_) - set(input_data.columns)
 for col in missing_cols:
@@ -57,8 +69,12 @@ input_data = input_data[model.feature_names_in_]
 
 
 if st.button("Predict Mental Health Condition"):
-    prediction = model.predict(input_data)  
-    st.write("Predicted Mental Health Condition:", "Ill" if prediction[0] == 1 else "Fit")
+    try:
+        prediction = model.predict(input_data)
+        st.write("Model output class:", prediction[0])
+        st.caption("The original target-label mapping has not been independently verified. Do not interpret this class as a diagnosis or use it for employment or treatment decisions.")
+    except Exception:
+        st.error("Prediction failed. The input features may not match the saved model. Retrain and package the model and preprocessing together.")
 
 
 
