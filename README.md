@@ -1,40 +1,51 @@
-![Project Visuals](FRM.jpg)
+# Employee Mental Health Condition Prediction
 
-# **Mental Health Condition Prediction Using Machine Learning**  
+An educational machine-learning project exploring associations between employee and workplace characteristics and a dataset outcome label.
 
-### **Overview**  
-This repository presents a machine learning project aimed at predicting employee mental health conditions based on key workplace and personal factors. Here, is contained the CSV file (which has been cleaned and transformed in excel), the codes, model, the python file and the encoded file. The project emphasizes the importance of mental health awareness in professional environments and leverages machine learning to provide actionable insights for improving workplace wellness initiatives.
+![Project visual](FRM.jpg)
 
----
+## Project scope
 
-### **Key Features**  
-- **Objective:**  
-  To build a predictive model capable of identifying mental health conditions in employees, thereby aiding in early intervention and support strategies.  
+The repository contains a cleaned dataset, model-training notebook, saved Logistic Regression model, one-hot encoder and Streamlit prototypes. The training work compares Logistic Regression, Random Forest, Gradient Boosting, Support Vector Classifier, Decision Tree and K-Nearest Neighbours.
 
-- **Data Scope:**  
-  The dataset spans six continents and includes diverse features such as age, gender, stress level, hours worked per week, access to mental health resources, and more.  
+The original project notes report an F1 score of 86.4% for Logistic Regression. This figure is retained as a historical reported result; it has **not been independently reproduced as part of this documentation update**. Before using it as a portfolio performance claim, rerun the notebook from a clean environment and document the test split, class-wise precision/recall, confusion matrix and preprocessing procedure.
 
-- **Machine Learning Models Evaluated:**  
-  - Logistic Regression (*final selected model*)  
-  - Random Forest  
-  - Gradient Boosting  
-  - Support Vector Classifier (SVC)  
-  - Decision Tree  
-  - K-Nearest Neighbor  
+## Repository files
 
-- **Model Performance:**  
-  Models were assessed using metrics such as accuracy, F1 score, and generalization ability. Logistic Regression was chosen due to its balanced performance and high F1 score, making it the most suitable for deployment.  
+| File | Purpose |
+|---|---|
+| `Remote.csv` | Project dataset |
+| `Remote new-Copy1.ipynb` | Exploratory/model-training notebook |
+| `model.pkl` | Serialized trained estimator |
+| `onehot_encoder.pkl` | Categorical feature encoder |
+| `Mental_Health.py` | Primary Streamlit interface |
+| `new.py`, `new_1.py` | Earlier interface prototypes |
 
----
+## Run locally
 
-### **Results and Insights**  
-1. **Logistic Regression** demonstrated strong performance on both training and test data, with an F1 score of **86.4%**, indicating reliability and generalization capability.  
-2. **Random Forest** and **Gradient Boosting** showed high accuracy but risked overfitting due to significantly better performance on training data compared to test data.  
-3. The **confusion matrix** for the selected model highlighted its ability to minimize false negatives, making it a robust choice for early mental health condition detection.  
+Use Python in a virtual environment. Install compatible versions of Streamlit, pandas, numpy, scikit-learn and joblib that match the environment used to serialize the model.
 
----
+```bash
+python -m venv .venv
+# Windows: .venv\Scripts\activate
+# macOS/Linux: source .venv/bin/activate
+pip install streamlit pandas numpy scikit-learn joblib
+streamlit run Mental_Health.py
+```
 
-### **Conclusion**  
-This project highlights the potential of machine learning in promoting mental health awareness. By accurately predicting mental health conditions, the model serves as a tool for organizations to proactively address employee well-being, reduce workplace stress, and enhance productivity.  
+The serialized model and encoder must be compatible with the installed scikit-learn version. Model files created with a different version may fail to load or behave differently.
 
----  
+## Important limitations
+
+- This is an experimental educational project, **not a clinical tool, mental-health screening instrument or diagnostic system**.
+- Predictions should not be used for hiring, employee evaluation, treatment decisions or other consequential decisions.
+- The F1 score in the original project notes has not been independently verified in this branch.
+- The saved estimator and encoder should be packaged with a single reproducible preprocessing pipeline. The alternate scripts are prototypes and may not share identical input schemas.
+- Dataset provenance, consent, representativeness, target definition, class balance and potential demographic/workplace bias should be documented before drawing substantive conclusions.
+
+## Next technical improvements
+
+1. Rebuild training and inference as one scikit-learn Pipeline.
+2. Add a pinned, tested `requirements.txt` and reproducible train/test evaluation.
+3. Add automated checks that the app feature names and order match the fitted pipeline.
+4. Document dataset source, target encoding, limitations and model validation.

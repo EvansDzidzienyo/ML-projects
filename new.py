@@ -1,46 +1,39 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import joblib
-from sklearn.preprocessing import StandardScaler
 
-# Load the trained model
-model = joblib.load("model.pkl")
-  # Replace with your actual model file name
-onehot_encoder = joblib.load("onehot_encoder.pkl")
+# This is a secondary prototype. Mental_Health.py is the primary app.
+try:
+    model = joblib.load("model.pkl")
+    onehot_encoder = joblib.load("onehot_encoder.pkl")
+except Exception:
+    st.error("The saved model or encoder could not be loaded. Check compatible Python and scikit-learn versions.")
+    st.stop()
 
-
-# Load the scaler if used
-scaler = joblib.load('scaler.pkl')  # Replace with the scaler file name if applicable
-
-# Label encoding mappings (based on the categorical map you provided)
 label_mappings = {
     "sleep_Quality": {"Poor": 0, "Average": 1, "Good": 2},
     "stress_Level": {"Low": 0, "Medium": 1, "High": 2},
     "access_to_Mental_Health_Resource": {"No": 0, "Yes": 1},
-    "physical_Activity": {"Not At All": 0, "Weekly": 1, "Daily": 2}
+    "physical_Activity": {"Not At All": 0, "Weekly": 1, "Daily": 2},
 }
 
-# Function to apply label encoding based on the mappings
 def label_encode(value, mapping):
-    return mapping.get(value, -1)  # Return -1 for any unexpected input
+    return mapping[value]
 
-# Define input fields for each feature
-st.title("Employee Mental Health Prediction")
+st.title("Employee Mental Health Model — Prototype")
+st.warning("Educational demonstration only. This output is not a clinical assessment or diagnosis.")
 
-# Collecting inputs
 age = st.number_input("Age", min_value=18, max_value=100, value=30)
-gender = st.selectbox("Gender", options=["Male", "Female", "Other"])
-industry = st.selectbox("Industry", options=["Healthcare", "IT", "Education", "Finance", "Consulting", "Manufacturing"])
-location = st.selectbox("Work Location", options=["Onsite", "Remote", "Hybrid"])
-sleep_quality = st.selectbox("Sleep Quality", options=["Poor", "Average", "Good"])
-stress_level = st.selectbox("Stress Level", options=["Low", "Medium", "High"])
-access_to_resources = st.selectbox("Access to Mental Health Resources", options=["Yes", "No"])
-physical_activity = st.selectbox("Physical Activity Level", options=["Not At All", "Weekly", "Daily"])
-region = st.selectbox("Region", options=["Europe", "Asia", "North America", "South America", "Oceania", "Africa"])
+gender = st.selectbox("Gender", ["Male", "Female", "Other"])
+industry = st.selectbox("Industry", ["Healthcare", "IT", "Education", "Finance", "Consulting", "Manufacturing"])
+location = st.selectbox("Work Location", ["Onsite", "Remote", "Hybrid"])
+sleep_quality = st.selectbox("Sleep Quality", ["Poor", "Average", "Good"])
+stress_level = st.selectbox("Stress Level", ["Low", "Medium", "High"])
+access_to_resources = st.selectbox("Access to Mental Health Resources", ["Yes", "No"])
+physical_activity = st.selectbox("Physical Activity Level", ["Not At All", "Weekly", "Daily"])
+region = st.selectbox("Region", ["Europe", "Asia", "North America", "South America", "Oceania", "Africa"])
 hours_worked_per_week = st.number_input("Hours Worked Per Week", min_value=0, max_value=100, value=40)
 
-# Prepare data for prediction
 input_data = pd.DataFrame({
     "Age": [age],
     "Hours_Worked_Per_Week": [hours_worked_per_week],
@@ -51,31 +44,42 @@ input_data = pd.DataFrame({
     "gender": [gender],
     "industry": [industry],
     "Location": [location],
-    "region": [region]
+    "region": [region],
 })
 
-#Apply one-hot encoding using the loaded encoder
-onehot_encoded_data = onehot_encoder.transform(input_data[['gender', 'industry', 'Location', 'region']])
+try:
+    encoded = onehot_encoder.transform(input_data[["gender", "industry", "Location", "region"]])
+except Exception:
+    st.error("The selected categories are not supported by the saved encoder. Retrain and package the model and encoder together.")
+    st.stop()
+encoded_df = pd.DataFrame(
+    encoded,
+    columns=onehot_encoder.get_feature_names_out(["gender", "industry", "Location", "region"]),
+    index=input_data.index,
+)
+input_final = pd.concat(
+    [input_data.drop(["gender", "industry", "Location", "region"], axis=1), encoded_df],
+    axis=1,
+)
 
-# Convert one-hot encoded data to DataFrame with appropriate column names
-onehot_encoded_df = pd.DataFrame(onehot_encoded_data, columns=onehot_encoder.get_feature_names_out(['gender', 'industry', 'Location', 'region']))
+if not hasattr(model, "feature_names_in_"):
+    st.error("The saved model does not expose its expected feature names. Retrain/package the model and preprocessing together.")
+    st.stop()
 
-# Concatenate the numerical features and the one-hot encoded categorical features
-input_final = pd.concat([input_data.drop(['gender', 'industry', 'Location', 'region'], axis=1), onehot_encoded_df], axis=1)
+expected = list(model.feature_names_in_)
+missing = [column for column in expected if column not in input_final.columns]
+extra = [column for column in input_final.columns if column not in expected]
+if missing:
+    st.error("Input preprocessing does not match the saved model. Missing model features: " + ", ".join(missing))
+    st.stop()
+if extra:
+    input_final = input_final.drop(columns=extra)
+input_final = input_final[expected]
 
-# Ensure the input columns match the model’s expected features
-missing_cols = set(model.feature_names_in_) - set(input_final.columns)
-for col in missing_cols:
-    input_final[col] = 0  # Add missing columns as 0
-
-extra_cols = set(input_final.columns) - set(model.feature_names_in_)
-input_final.drop(extra_cols, axis=1, inplace=True)
-
-# Scale the input if scaler exists
-#input_scaled = scaler.transform(input_final) if scaler else input_final
-
-# Make prediction
-if st.button("Predict Mental Health Condition"):
-    prediction = model.predict(input_data)  # Adjust based on actual model expectations
-    st.write("Predicted Mental Health Condition:", "Ill" if prediction[0] == 1 else "Fit")
-
+if st.button("Run experimental prediction"):
+    try:
+        prediction = model.predict(input_final)
+        st.write("Model output class:", prediction[0])
+    except Exception:
+        st.error("Prediction failed. The saved model and input preprocessing may be incompatible.")
+    st.caption("Interpret the class label using the dataset's documented target mapping; do not treat it as a diagnosis.")
