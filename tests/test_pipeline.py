@@ -1,7 +1,11 @@
 from pathlib import Path
+import sys
 
 import joblib
 import pandas as pd
+
+# Ensure the repository root is importable when pytest runs from the tests directory.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from train import DATA_PATH, FEATURES, TARGET, build_pipeline
 
