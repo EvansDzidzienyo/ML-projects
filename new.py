@@ -3,8 +3,12 @@ import pandas as pd
 import joblib
 
 # This is a secondary prototype. Mental_Health.py is the primary app.
-model = joblib.load("model.pkl")
-onehot_encoder = joblib.load("onehot_encoder.pkl")
+try:
+    model = joblib.load("model.pkl")
+    onehot_encoder = joblib.load("onehot_encoder.pkl")
+except Exception:
+    st.error("The saved model or encoder could not be loaded. Check compatible Python and scikit-learn versions.")
+    st.stop()
 
 label_mappings = {
     "sleep_Quality": {"Poor": 0, "Average": 1, "Good": 2},
@@ -43,7 +47,11 @@ input_data = pd.DataFrame({
     "region": [region],
 })
 
-encoded = onehot_encoder.transform(input_data[["gender", "industry", "Location", "region"]])
+try:
+    encoded = onehot_encoder.transform(input_data[["gender", "industry", "Location", "region"]])
+except Exception:
+    st.error("The selected categories are not supported by the saved encoder. Retrain and package the model and encoder together.")
+    st.stop()
 encoded_df = pd.DataFrame(
     encoded,
     columns=onehot_encoder.get_feature_names_out(["gender", "industry", "Location", "region"]),
@@ -69,6 +77,9 @@ if extra:
 input_final = input_final[expected]
 
 if st.button("Run experimental prediction"):
-    prediction = model.predict(input_final)
-    st.write("Model output:", "Class 1" if prediction[0] == 1 else "Class 0")
+    try:
+        prediction = model.predict(input_final)
+        st.write("Model output class:", prediction[0])
+    except Exception:
+        st.error("Prediction failed. The saved model and input preprocessing may be incompatible.")
     st.caption("Interpret the class label using the dataset's documented target mapping; do not treat it as a diagnosis.")
